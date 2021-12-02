@@ -45,7 +45,7 @@ void Execute(HANDLE token,wchar_t* command) {
     }
     SC_HANDLE scm = NULL, service = NULL;
     scm = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-    if (scm == INVALID_HANDLE_VALUE) {
+    if (scm == NULL) {
         wprintf(L"ERROR[OpenSCManager]: %d\n", GetLastError());
         exit(0);
     }
