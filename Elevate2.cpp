@@ -182,7 +182,7 @@ int wmain(int argc,wchar_t* argv[])
         if (SetPermssion()) {
 
           
-            wprintf(L"Process DACL set to EVERYONE FULL\n");
+            wprintf(L"Process DACL set to NULL\n");
             //Uncomment line below to change DACL of desktop object. Without it some features like screenshot in meterpreter will fail.
             //SetWinDesktopPermission();
             Execute(token,argv[1],argv[2],argv[3]);
