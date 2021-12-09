@@ -28,7 +28,7 @@ int main()
     //Uncomment if using alternate credentials.
     //MakeToken();
 
-    result = RegConnectRegistryA("\\\\dc01.creed.local", HKEY_LOCAL_MACHINE,&hklm);
+    result = RegConnectRegistryA("\\\\<computername>", HKEY_LOCAL_MACHINE,&hklm);
     if (result != 0) {
         printf("RegConnectRegistryW: %d\n", result);
         exit(0);
