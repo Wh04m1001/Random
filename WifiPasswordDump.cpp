@@ -90,7 +90,7 @@ void DumpWifi() {
                 printf("Error[WlanGetProfile]: %d\n", success);
                 exit(0);
             }
-            //parse xml shitty way using c++ cause i suck at c :) 
+            
             std::wstring s = xml;
 
             int position1 = s.find(token)+wcslen(token);
