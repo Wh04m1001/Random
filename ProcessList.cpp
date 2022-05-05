@@ -125,9 +125,19 @@ int wmain(int argc, wchar_t** argv) {
 			info.ImageName.Length = 0;
 
 			status = NtQuerySystemInformation(88, &info, sizeof(info), NULL);
-			if (status == 0 && info.ImageName.Buffer != NULL) {
+
+		
+			if (status == 0) {
 				PWSTR process = NULL;
 				UNICODE_STRING path;
+				if ((ULONG)info.ProcessId == 4) {
+					wprintf(L"%-50s\t4\n", L"System");
+					continue;
+				}
+				if (info.ImageName.Buffer == NULL) {
+					wprintf(L"%-50s\t\n%d", L"???", (DWORD)info.ProcessId);
+					continue;
+				}
 				if (RtlDosPathNameToNtPathName_U(info.ImageName.Buffer, &path, &process, NULL)) {
 					wprintf(L"%-50s\t%d\n", process,(DWORD)info.ProcessId);
 				}
